@@ -19,7 +19,7 @@ class uController{
                 role: data.role
             });
         } catch(error) {
-            console.log("Error from Register =>", + error);
+            //console.log("Error from Register =>", + error);
             next(error);
         }
     }
@@ -45,15 +45,20 @@ class uController{
             }if(!comparePassword(payload.password, data.password)) {
                 throw({ name: 'InvalidEmailPassword' });
             }else {
+                const role = data.role
                 const access_token = loginToken({
                     id: data.id,
                     email: data.email
                 });
-                response.status(200).json({ access_token });
+                response.status(200).json({ 
+                    message: 'Login Success',
+                    access_token: access_token, 
+                    role: role 
+                });
             }
 
         } catch(error) {
-            console.log("Error from Login =>", + error);
+            //console.log("Error from Login =>", + error);
             next(error);
         }
     }

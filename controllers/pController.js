@@ -19,7 +19,7 @@ class pController{
                 "stock": data.stock,
                 "UserId": userId
             }
-            response.status(201).json({ result });
+            response.status(201).json(result);
         } catch (error) {
             next(error);
         }
@@ -29,7 +29,7 @@ class pController{
         const userId = +request.loggedInUser.id;
         try {
             const data = await Product.findAll();
-            response.status(200).json({ data });
+            response.status(200).json(data);
         } catch (error) {
             next(error);
         }

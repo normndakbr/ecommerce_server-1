@@ -1,72 +1,163 @@
 const request = require("supertest");
-const app = require("../app");
-const { sequelize } = require('../models')
+const app = require("../app.js");
+const jwt = require("jsonwebtoken");
+const { User, sequelize } = require('../models')
 const { queryInterface } = sequelize
 
-afterall(done => {
-    queryInterface.bulkDelete("Users")
-    .then(() => {
-        done();
+let newUser = {
+    email: "admin@mail.com",
+    password: "qwerty",
+    role: "admin"
+}
+
+beforeAll( done => {
+    User.create(newUser)
+    .then( data => {
+        access_token = jwt.sign({
+            id: data.id,
+            email: data.email
+        })
+        done()
     })
-    .catch(error => {
-        console.log("Error from user.test.js >>>>", + error);
-        done();
+    .catch( error => {
+        done(error)
+    })
+})
+
+// afterall(done => {
+//     queryInterface.bulkDelete("Users")
+//     .then(() => {
+//         done();
+//     })
+//     .catch(error => {
+//         console.log("Error from user.test.js >>>>", + error);
+//         done();
+//     })
+// })
+
+describe('POST /login', () => {
+    
+    test("Login Success (200) - should return access_token", (done) => {
+        return request(app)
+        .post('/login')
+        .send({ email: "admin@mail.com", password: "qwerty" })
+        .set("Accept", "application/json")
+        .then( response => {
+            const { body, status } = response
+
+            expect(status).toBe(200)
+            expect(body).toHaveProperty("access_token")
+            done()
+        })
+        .catch( (err) => {
+            done(err)
+        });
+    })
+
+    test("Login Failed (404) - return message : data not found", (done) => {
+        return request(app)
+            .post('/login')
+            .send({ email: "admln@mail.com", password: "qwerty" })
+            .set("Accept", "appliaction/json")
+            .then( response => {
+                const { body, status } = response
+
+                expect(status).toBe(404)
+                expect(body).toHaveProperty("message","data not found")
+                done()
+            })
+            .catch(err => {
+                done(err)
+            })
+    })
+    
+    test("Login Failed (400) - return message : email cannot be empty", (done) => {
+        return request(app)
+            .post('/login')
+            .send({ email: "", password: "qwerty" })
+            .set("Accept", "appliaction/json")
+            .then( response => {
+                const { body, status } = response
+
+                expect(status).toBe(404)
+                expect(body).toHaveProperty("message","email cannot be empty")
+                done()
+            })
+            .catch(err => {
+                done(err)
+            })
+    })
+
+    test("Login Failed (400) - return message : password cannot be empty", (done) => {
+        return request(app)
+            .post('/login')
+            .send({ email: "admin@mail.com", password: "" })
+            .set("Accept", "appliaction/json")
+            .then( response => {
+                const { body, status } = response
+
+                expect(status).toBe(404)
+                expect(body).toHaveProperty("message","password cannot be empty")
+                done()
+            })
+            .catch(err => {
+                done(err)
+            })
     })
 })
 
 describe('POST /register', () => {
-    it('test register success', (done) => {
-        request(app)
+    test("Register Success (200) - should return id and email", (done) => {
+        return request(app)
         .post('/register')
-        .send({email: 'agumon@mail.com', password: 'qwerty'})
-        .then(response => {
-            const {body, status} = response
+        .send({ email: "admin@mail.com", password: "qwerty" })
+        .set("Accept", "application/json")
+        .then( response => {
+            const { body, status } = response
+
             expect(status).toBe(201);
             expect(body).toHaveProperty('id', expect.any(Number));
-            expect(body).toHaveProperty('email', 'agumon@mail.com');
-            done();
+            expect(body).toHaveProperty('email', 'admin@mail.com');
+            done()
         })
-        .catch(error => {
-            console.log(error);
-        })
-    })
-
-    it('test register email already exist', (done) => {
-        request(app)
-        .post('/register')
-        .send({email: 'agumon@mail.com', password: 'qwerty'})
-        .then(response => {
-            const {body, status} = response
-            expect(status).toBe(500);
-            expect(body).toHaveProperty('message', 'Email already exist');
-            done();
-        })
-        .catch(error => {
-            console.log(error);
-        })
-    })
-})
-
-describe('POST /login', () => {
-    it('test login success', () => {
-        request(app)
-        .post('/login')
-        .send({email: 'agumon@mail.com', password: 'qwerty'})
-        .then(response => {
-            let {body, status} = response
-            expect(status).toBe(200);
-            expect(body).toHaveProperty('access_token', expect.any(String));
+        .catch( (err) => {
+            done(err)
         });
     })
 
-    it('test login invalid email/password', () => {
-        request(app)
-        .post('/login')
-        .send({email: 'agumon@mail.com', password: 'qwerty'})
-        .then(response => {
-            let {body, status} = response
-            expect(status).toBe(500);
-            expect(body).toHaveProperty('message', 'Invalid email or password');
-        });
+    test("Register Failed (400) - return message : email cannot be empty", (done) => {
+        return request(app)
+            .post('/register')
+            .send({ email: "", password: "qwerty" })
+            .set("Accept", "appliaction/json")
+            .then( response => {
+                const { body, status } = response
+
+                expect(status).toBe(400)
+                expect(body).toHaveProperty("message","email cannot be empty")
+                done()
+            })
+            .catch(err => {
+                done(err)
+            })
     })
+
+    test("Register Failed (400) - return message : password cannot be empty", (done) => {
+        return request(app)
+            .post('/login')
+            .send({ email: "admin@mail.com", password: "" })
+            .set("Accept", "appliaction/json")
+            .then( response => {
+                const { body, status } = response
+
+                expect(status).toBe(400)
+                expect(body).toHaveProperty("message","password cannot be empty")
+                done()
+            })
+            .catch(err => {
+                done(err)
+            })
+    })
+
+    
 })

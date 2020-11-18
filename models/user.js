@@ -34,11 +34,6 @@ module.exports = (sequelize, DataTypes) => {
     role: {
       type: DataTypes.STRING,
       allowNull: false,
-      validate: {
-        notEmpty: {
-          message: 'You will be a user if this section left blank.'
-        }
-      }
     }
   }, {
     sequelize,
@@ -46,6 +41,9 @@ module.exports = (sequelize, DataTypes) => {
     hooks: {
       beforeCreate(user){
         user.password = hashPassword(user.password);
+        if(!user.role) {
+          user.role = 'user';
+        }
       }
     }
   });
