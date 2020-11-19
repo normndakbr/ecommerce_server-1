@@ -35,6 +35,16 @@ class pController{
         }
     }
 
+    static async custRead(request, response) {
+        try {
+            const data = await Product.findAll();
+            response.status(200).json(data);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+
     static async update(request, response, next) {
         try {
             const productId = +request.params.id;
